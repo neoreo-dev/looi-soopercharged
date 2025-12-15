@@ -48,7 +48,7 @@ You can find some working codes to send to the robot in the `ble_sniffed` folder
 NRF Connect for mobile will do wonders in sending commands. Remember to connect to LOOI from the app first, then do NOT kill the app. There's an handshake that I yet have to figure out, without it LOOI will disconnect almost immediately.
 
 # About leaks...
-You can check out leaked material (or possibly content that didn't make it to production) in the leaks folder. For audio files, check out the audio folder instead.
+You can check out leaked material (or possibly content that didn't make it to production) in the `leaks` folder. For audio files, check out the `audio` folder instead.
 All content hosted here is taken directly from LOOI's Android app.
 
 # Credits
