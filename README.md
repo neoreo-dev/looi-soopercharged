@@ -12,9 +12,9 @@ This README has been co-writed with the help of AI. All content being read here 
 
 The stock LOOI application locks several features behind server-side configurations and hardware sensors. Through targeted Smali code manipulation, I have successfully bypassed some of these limits.
 
-### Unlocking Hidden Games ("LOOI Pong")
+### Unlocking Incomplete Games (LOOI Pong)
 
-The app resources contain a fully functional activity `LooiPingPongActivity` (Pong), but it is hidden from the main menu's `GameCenterActivity`.
+The app resources contain a fully functional activity `LooiPingPongActivity` (Pong), but it is hidden from the main menu's `GameCenterActivity`. Consider this game is broken and incomplete, and is literally just 2 player pong. Probably scrapped due to the (apparently) low performance 2 face recognition system.
 
 **The Mod:**
 
