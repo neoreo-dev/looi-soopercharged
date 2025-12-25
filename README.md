@@ -1,59 +1,112 @@
 # SOOPERCHARGE your little friend
 ![alt text](https://github.com/SlyFox-Asia/looi-soopercharged/blob/ebfa4fc97cf09908a15f0afcbd31393fc01ab911/SOOPERCHARGE.png)
-Project SOOPERCHARGE is the first RE project for LOOI, aiming to render it fully open source.
-This repo, while still empty-ish, is going to hold almost all info I know about the robot - and some extra content, such as leaks.
 
-# About RE...
-The current goal is to RE how the LOOI App communicates with the robot in order to create custom animations and reimplement everything on a possibly modified client.
+**Project SOOPERCHARGE** is the first comprehensive Reverse Engineering and Modification project for the **LOOI Robot**.
+This repository hosts documentation, decompiled logic analysis, packet captures, and more.
 
-LOOI robot operates on a sequence-based Bluetooth Low Energy (BLE) protocol.
-The primary control interface is the fe00 characteristic, which accepts multi-byte command strings to coordinate motors, LEDs, and animations simultaneously. Unlike simple direct-drive robots, LOOI uses a sort of "Script Mode" logic where commands function as frames in an animation sequence rather than instantaneous electrical signals.
+This README has been co-writed with the help of AI. All content being read here has then been reviewed multiple times by an human (me). I ain't got hours to write, please bear with me.
 
-The first byte is a rolling counter (`00`-`FF`). The robot discards any packet with a duplicate or out-of-order sequence ID to prevent command flooding.
+---
 
-The second byte determines the parsing logic (e.g., `0e` for complex animations, `00` for raw motor control). Controlling the RGB strip is possible with the 0e mode, but I haven't figured how to do it correctly yet.
+## About the app.
 
-Most commands sent to fe00 follow this hypotetical 9-to-11 byte structure:
+The stock LOOI application locks several features behind server-side configurations and hardware sensors. Through targeted Smali code manipulation, I have successfully bypassed some of these limits.
 
-```
-[SEQ] [MODE] [TIME] [ R ] [ G ] [ B ] [RES] [TARGET] [VAL] [DUR] [END]
-```
+### Unlocking Hidden Games ("LOOI Pong")
 
-  * **`SEQ`**: Sequence ID. Must increment for every new command.
-  * **`MODE`**: The command type.
-      * `00`: Fine Adjustment (Neck/Slow move).
-      * `02`: Rotation.
-      * `0e`: Animation Script (Master Mode for Light + Move).
-      * `10`: Still figuring it out.
-  * **`TIME`**: Execution timestamp or frame index (e.g., `10`, `21`, `7d`).
-  * **`R G B`**: Red, Green, Blue brightness values (`00`-`FF`).
-  * **`RES`**: Reserved/Spacer (Usually `00`).
-  * **`TARGET`**: Subsystem ID.
-      * `00`: Wheel Base.
-      * `01`: Neck Servo.
-  * **`VAL`**: Magnitude. Motor Speed (for Wheels) or Position Angle (for Neck).
-  * **`DUR`**: Duration of the action (ms/ticks). `00` often implies "Hold".
-  * **`END`**: Footer.
+The app resources contain a fully functional activity `LooiPingPongActivity` (Pong), but it is hidden from the main menu's `GameCenterActivity`.
 
-### **Known Characteristics**
+**The Mod:**
 
-  * **`fe00`**: Main Command Interface (Write).
-  * **`ff02`**: Primary Motor Drive (Boost mode - When talking directly to it, sending `FF` would supposedly change the moving direction - There is also a way to let it rotate on its own, but I have no idea what's the code for it and am still researching on it).
-  * **`fed0`**: Primary Motor Drive (Slow mode).
-  * **`fed1`**: Neck Motor.
-  * **`fed2`**: Headlight/Torch Toggle (When sending commands directly to it, `00` = Off, `03` = On).
-  * **`fed9`**: Sensor Data (Read Only).
+* **Target:** `com.TangibleFuture.looiRobot.game.activity.GameCenterActivity`.
+* **Menu Injection:** I increased the `GameBean` array size in `initData` from 3 to 4 and injected a new game item.
+* **Logic:** The launch function `jumpGame` contains a check for a specific localized string. I hardcoded the menu item name to **"LOOI Pong"** (as there are some weird function limits I'm not confident with yet) and patched `jumpGame` to accept this string as the "password" to launch the hidden activity.
 
-You can find some working codes to send to the robot in the `ble_sniffed` folder, as you may have thought, they have been sniffed using an Android device.
-NRF Connect for mobile will do wonders in sending commands. Remember to connect to LOOI from the app first, then do NOT kill the app. There's an handshake that I yet have to figure out, without it LOOI will disconnect almost immediately.
+### RC Unleashed
 
-# About leaks...
-You can check out leaked material (or possibly content that didn't make it to production) in the `leaks` folder. For audio files, check out the `audio` folder instead.
-All content hosted here is taken directly from LOOI's Android app.
+The stock application artificially restricts Remote Control usage by monitoring the `phone_stick_state` variable (containing the magnetic attachment state). If the phone is detected as "Docked" on the robot, the app blocks the RC interface with a mandatory "Take Down Phone" dialog, forcing you to decapitate the poor thing. Hell, what if you want to drive it with cardboard LOOI on?
 
-# Credits
+**The Mod:**
 
-u/revned911 (reddit) for initial findings on the topic
+* **Target:** `com.TangibleFuture.looiRobot.activity.RemoteControlActivity`.
+* **Logic Bypass:** I identified the sensor check routine within the `onResume` lifecycle method and removed the conditional jump that triggers the blocking dialog. Additionally, the `showTakeDownPhoneDialog` method was neutralized to prevent any asynchronous triggers.
+* **Result:** The RC interface now loads immediately regardless of the phone's physical position, enabling fully functional driving controls while something is mounted on the robot.
 
-# Want to contribute?
-Please contact me personally on Telegram @SplattyDoesStuff. I'm looking forward to working with anyone who has more competences than me - especially on the code side :)
+### About LLM REing
+
+It is definitely possible to reimplement your own LLM model in it, I've found multiple API keys that I won't be sharing for obvious reasons. I've tried changing the system prompt multiple times and failed, it seems like it may be actively fetching it from the backend. I'm still working on it and will share progress as soon as I have some.
+
+---
+
+## 📡 About LOOI's BLE protocol
+
+LOOI operates on a sequence-based BLE protocol. It is not a simple direct-drive remote control; it uses a "Script Mode" logic where commands act as frames in an animation sequence.
+
+### Connection Handshake
+
+Unfortunately, you cannot simply connect via NRF Connect and start sending commands immediately. The robot requires a handshake sequence initiated by the official app - I have found it in the app's source code, but haven't actually analyzed it yet. If this handshake is missing, LOOI will disconnect after a few seconds.
+
+Connect via the official app first, background it (do not kill it), then connect from NRF connect. :-)
+
+### The Command Interface (`fe00`)
+
+The primary write characteristic is `fe00`. It accepts multi-byte strings to coordinate motors, LEDs, and screen animations.
+The command structure is GENERALLY a **17-byte packet**.
+
+**Reference Command (Rotate and turn led red - it's a custom command, you're welcome to try it):**
+`00 07 00 FF 05 00 00 00 00 64 02 0A 96 02 14 00 02`
+
+**Packet Breakdown:**
+
+| Byte Index | Value (Hex) | Field Name | Description |
+| --- | --- | --- | --- |
+| **0** | `00` | **SEQ** | Rolling Sequence Counter (00-FF). Must increment or packet is dropped. |
+| **1** | `07` | **OPCODE** | The Command Type, I still have to figure it out |
+| **2** | `00` | **SUB_OP** | Sub-command or mode modifier. |
+| **3** | `FF` | **MASK_A** | Target System Mask A. |
+| **4** | `05` | **MASK_B** | Target System Mask B. |
+| **5-8** | `00..00` | **PAYLOAD** | 4-Byte Data Block. |
+| **9** | `64` | **VALUE** | Magnitude/Speed. `64` (Hex) = 100 (Decimal). |
+| **10** | `02` | **PARAM_1** | Auxiliary Parameter 1. |
+| **11** | `0A` | **PARAM_2** | Auxiliary Parameter 2. |
+| **12** | `96` | **DURATION** | Execution time in ticks/ms (`96` = 150). |
+| **13** | `02` | **PARAM_3** | Context specific. |
+| **14** | `14` | **PARAM_4** | Context specific. |
+| **15** | `00` | **RES** | Reserved. |
+| **16** | `02` | **END/CRC** | Footer or Checksum. |
+
+### Known Characteristics & UUIDs (Incomplete, I'll add the rest soon I promise)
+
+| UUID Prefix | Function | Notes |
+| --- | --- | --- |
+| **fe00** | **Command Interface** | Main write channel for animations and movement. |
+| **ff02** | **Motor Drive (Boost)** | High-speed movement. Sending `FF` supposedly changes direction. |
+| **fed0** | **Motor Drive (Slow)** | Precision movement control. |
+| **fed1** | **Neck Motor** | Independent head articulation. |
+| **fed2** | **Headlight/Torch** | Direct control: `00` = Off, `03` = On. |
+| **fed9** | **Sensor Data** | Read-only stream (Cliff sensors, TOF distance, Battery). |
+
+---
+
+## 📂 Repository Contents
+
+* **/ble_sniffed**: Contains captured payloads from my sessions. You can try them out by yourself with the NRF Connect app for Android devices.
+* **/leaks**: Content found within the APKs that did not make it to production (yet). Not everything will be here since I wouldn't like a DMCA from TangibleFuture.
+* **/audio**: Extracted sound files from the robot's internal storage.
+
+---
+
+## 🤝 Contributing & Credits
+
+**Credits:**
+
+* **u/revned911 (Reddit):** For initial findings on the BLE topic.
+
+**Want to contribute?**
+This project is active and I am looking for help! If you have experience with:
+
+* Android Reverse Engineering (Smali/Kotlin)
+* Bluetooth Low Energy packet analysis
+* LLM Prompt Injection / API hooking
+
+Please contact me personally on **Telegram: @SplattyDoesStuff**. I am looking forward to working with anyone who has more competence than me, especially on the code side!
