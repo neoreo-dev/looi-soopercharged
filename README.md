@@ -92,7 +92,7 @@ The command structure is GENERALLY a **17-byte packet**.
 
 * **/ble_sniffed**: Contains captured payloads from my sessions. You can try them out by yourself with the NRF Connect app for Android devices.
 * **/leaks**: Content found within the APKs that did not make it to production (yet). Not everything will be here since I wouldn't like a DMCA from TangibleFuture.
-* **/audio**: Extracted sound files from the robot's internal storage.
+* **/audio**: Extracted sound files from the LOOI app.
 
 ---
 
