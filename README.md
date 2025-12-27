@@ -6,6 +6,8 @@ This repository hosts documentation, decompiled logic analysis, packet captures,
 
 This README has been co-writed with the help of AI. All content being read here has then been reviewed multiple times by an human (me). I ain't got hours to write, please bear with me.
 
+Reverse engineering is generally legal in the EU under the Software Directive (Directive 2009/24/EC), allowing it for interoperability, security analysis, and error correction, provided specific conditions are met and it doesn't unduly harm the original software's market or infringe on patents/trade secrets.
+
 ---
 
 ## About the app.
