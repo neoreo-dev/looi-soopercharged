@@ -16,7 +16,7 @@ The stock LOOI application locks several features behind server-side configurati
 
 ### Updater Bypass
 
-To permanently disable the forced update mechanism and prevent the application from hanging on the splash screen, we modified the version comparison logic within `UpgradeManager$tryUpgrade$2.smali`. The original code compared the server version integer against the local version using a conditional branch (`if-le`). I patched this instruction by replacing it with an unconditional jump (`goto`), forcing the execution flow to always bypass the "Update Available" logic. This hardwires the application to execute the "No Update Needed" callback path every time, allowing the splash screen to dismiss normally regardless of the actual server version.
+To permanently disable the forced update mechanism and prevent the application from hanging on the splash screen, I modified the version comparison logic within `UpgradeManager$tryUpgrade$2.smali`. The original code compared the server version integer against the local version using a conditional branch (`if-le`). I patched this instruction by replacing it with an unconditional jump (`goto`), forcing the execution flow to always bypass the "Update Available" logic. This hardwires the application to execute the "No Update Needed" callback path every time, allowing the splash screen to dismiss normally regardless of the actual server version.
 This allows to run any version of the app without worrying about updates.
 
 ### Unlocking Incomplete Games (LOOI Pong)
