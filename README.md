@@ -41,7 +41,7 @@ The stock application artificially restricts Remote Control usage by monitoring 
 
 ### About LLM REing
 
-It is definitely possible to reimplement your own LLM model in it, I've found multiple API keys that I won't be sharing for obvious reasons. I've tried changing the system prompt multiple times and failed, it seems like it may be actively fetching it from the backend. I'm still working on it and will share progress as soon as I have some.
+It is fully possible on 2.5.0 and managed to use my local model with a modded client and a custom made proxy. More details on the SOOPERCHARGE Discord server.
 
 ---
 
